@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	"mock-adapter/adapter"
+	"mock/adapter"
 )
 
 func main() {

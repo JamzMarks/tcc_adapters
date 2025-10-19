@@ -13,7 +13,19 @@ import (
 
 // Device representa um dispositivo retornado pelo sistema principal.
 type Device struct {
-	ID string `json:"id"`
+	ID         int     `json:"id"`
+	MacAddress *string `json:"macAddress,omitempty"`
+	IP         *string `json:"ip,omitempty"`
+	DeviceKey  *string `json:"deviceKey,omitempty"`
+	DeviceID   string  `json:"deviceId"`
+	IsActive   *bool   `json:"isActive,omitempty"`
+	CreatedAt  *string `json:"createdAt,omitempty"`
+	UpdatedAt  *string `json:"updatedAt,omitempty"`
+}
+type DevicesResponse struct {
+	Success bool     `json:"success"`
+	Data    []Device `json:"data"`
+	Message string   `json:"message"`
 }
 
 // FetchDevices busca devices pela URL
@@ -30,17 +42,12 @@ func FetchDevices(url string) ([]Device, error) {
 		return nil, fmt.Errorf("bad status %d: %s", resp.StatusCode, string(b))
 	}
 
-	var devices []Device
-	if err := json.NewDecoder(resp.Body).Decode(&devices); err != nil {
-		return nil, err
+	var res DevicesResponse
+	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
+		return nil, fmt.Errorf("decode error: %w", err)
 	}
 
-	for i, d := range devices {
-		if d.ID == "" {
-			return nil, fmt.Errorf("device at index %d missing id", i)
-		}
-	}
-	return devices, nil
+	return res.Data, nil
 }
 
 // ConnectRabbit estabelece a conexão com o RabbitMQ e retorna o canal ativo.
@@ -81,9 +88,12 @@ func PublishWithRetry(ch *amqp.Channel, queue string, body []byte, retries int) 
 	return errors.New("publish retries exhausted")
 }
 
-// UpdateMessage representa o payload publicado no RabbitMQ.
-type UpdateMessage struct {
-	DeviceID string  `json:"device_id"`
-	Value    float64 `json:"value"`
-	TS       string  `json:"ts"`
+type EdgeMessage struct {
+	DeviceId   string `json:"deviceId"`
+	DeviceType string `json:"deviceType"`
+	Data       struct {
+		Confiability float64 `json:"confiability"`
+		Flow         float64 `json:"flow"`
+	} `json:"data"`
+	TS string `json:"ts"`
 }

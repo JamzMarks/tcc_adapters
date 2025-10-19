@@ -1,0 +1,18 @@
+
+services:
+  adapter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mock_adapter
+    environment:
+      - PORT=${INJECTOR_PORT}
+      - DEVICE_API_URL=${DEVICE_API_URL}
+      - RABBITMQ_URL=${RABBITMQ_URL}
+      - POLL_MS=${POLL_MS}
+      - QUEUE_NAME=${QUEUE_NAME}
+      - DELTA_RANGE=${DELTA_RANGE}
+      - RANDOM_SEED=${RANDOM_SEED}
+    ports:
+      - "${ADAPTER_PORT}:${ADAPTER_PORT}"
+    restart: unless-stopped

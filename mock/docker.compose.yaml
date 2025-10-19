@@ -1,8 +1,0 @@
-
-services:
-  adapter:
-    build: .
-    container_name: mock-adapter
-    env_file:
-      - .env
-    restart: unless-stopped

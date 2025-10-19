@@ -16,10 +16,10 @@ type Config struct {
 }
 
 func LoadConfig() *Config {
-	deviceAPI := flag.String("device-api-url", getenv("DEVICE_API_URL", "http://localhost:8080/devices"), "URL to fetch devices")
+	deviceAPI := flag.String("device-api-url", getenv("DEVICE_API_URL", "http://host.docker.internal:3005/api/v1/camera"), "URL to fetch devices")
 	rabbitURL := flag.String("rabbitmq-url", getenv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672/"), "RabbitMQ connection URL")
 	pollMs := flag.Int("poll-ms", atoiDefault(getenv("POLL_MS", "30000"), 30000), "Polling interval")
-	queue := flag.String("queue", getenv("QUEUE_NAME", "device.updates"), "RabbitMQ queue name")
+	queue := flag.String("queue", getenv("QUEUE_NAME", "injector_queue"), "RabbitMQ queue name")
 	delta := flag.Float64("delta-range", atofDefault(getenv("DELTA_RANGE", "0.09"), 0.09), "Max delta per tick")
 	seed := flag.Int64("seed", atoi64Default(getenv("RANDOM_SEED", "0"), 0), "Random seed (0 = time-based)")
 	flag.Parse()

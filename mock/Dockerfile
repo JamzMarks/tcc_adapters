@@ -1,34 +1,37 @@
-# Etapa 1: build
-FROM golang:1.25 AS builder
+# ===========================
+# Etapa 1: Build da aplicação
+# ===========================
+FROM golang:1.25.2-alpine AS builder
 
+# Instalar dependências úteis
+RUN apk add --no-cache git
+
+# Diretório de trabalho dentro do container
 WORKDIR /app
-# Copia os arquivos de dependências primeiro
+
+# Copiar os arquivos go.mod e go.sum antes para cachear dependências
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copia o resto do código
+# Copiar o restante do código-fonte
 COPY . .
 
-# Compila o binário estático
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o adapter .
-# Etapa 2: imagem final mínima
-FROM alpine:latest
+# Compilar o binário
+RUN go build -o mock .
+
+# ===========================
+# Etapa 2: Runtime (imagem final)
+# ===========================
+FROM alpine:3.20
 
 WORKDIR /app
 
 # Copia o binário do builder
-COPY --from=builder /app/adapter .
-
-# Configuração padrão via variáveis de ambiente (podem ser sobrescritas)
-ENV DEVICE_API_URL=http://host.docker.internal:8080/devices
-ENV RABBITMQ_URL=amqp://guest:guest@host.docker.internal:5672/
-ENV POLL_MS=1000
-ENV QUEUE_NAME=injector_queue
-ENV DELTA_RANGE=0.05
-ENV RANDOM_SEED=0
+COPY --from=builder /app/mock .
 
 # Expõe a porta 
-EXPOSE 8080
+EXPOSE 8081
 
 # Comando padrão
-CMD ["./adapter"]
+CMD ["./mock"]
+

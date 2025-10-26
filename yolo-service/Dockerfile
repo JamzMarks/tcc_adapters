@@ -18,12 +18,12 @@ RUN apt-get update && apt-get install -y \
 
 # Instala dependências do Python
 RUN pip install --no-cache-dir -r requirements.txt
-
+RUN pip install python-multipart
 # Copia o código
 COPY app/ ./app
 COPY model/ ./model
 
-EXPOSE 5000
+EXPOSE 7676
 
 # Comando para iniciar o servidor FastAPI
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "5000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7676"]

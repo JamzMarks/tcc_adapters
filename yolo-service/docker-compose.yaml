@@ -5,7 +5,7 @@ services:
     networks:
       - app-network
     environment:
-      - PORT=${YOLO_PORT}
+      - PORT=7676
     ports:
       - "${YOLO_PORT}:${YOLO_PORT}"
 networks:

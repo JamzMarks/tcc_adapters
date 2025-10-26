@@ -1,0 +1,13 @@
+services:
+  yolo-service:
+    build: .
+    container_name: yolo_service
+    networks:
+      - app-network
+    environment:
+      - PORT=${YOLO_PORT}
+    ports:
+      - "${YOLO_PORT}:${YOLO_PORT}"
+networks:
+  app-network:
+    driver: bridge

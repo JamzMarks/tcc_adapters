@@ -1,0 +1,9 @@
+services:
+  video-adapter:
+    build: ./yolo
+    container_name: yolo_adapter
+    networks:
+      - app-network
+networks:
+  app-network:
+    driver: bridge

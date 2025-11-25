@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  temperature_mock:
+    build: .
+    container_name: fastapi_publisher
+    ports:
+      - "4006:8000"
+    environment:
+      RABBITMQ_HOST: user
+      QUEUE_NAME: pass

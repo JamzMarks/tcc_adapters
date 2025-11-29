@@ -6,5 +6,5 @@ services:
     ports:
       - "4006:8000"
     environment:
-      RABBITMQ_HOST: user
+      RABBITMQ_HOST: amqp://user:pass@host.docker.internal:5672/
       QUEUE_NAME: injector_queue

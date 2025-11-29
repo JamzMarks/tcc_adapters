@@ -26,10 +26,16 @@ def publish(msg: MessageIn):
         },
         "ts": datetime.utcnow().isoformat() + "Z"
     }
-
+    print(message_out)
     publish_message(message_out)
 
     return {
         "status": "published",
         "sent": message_out
     }
+
+@app.get("/health")
+def health():
+    msg = 'Health check message'
+    print(msg)
+    return msg

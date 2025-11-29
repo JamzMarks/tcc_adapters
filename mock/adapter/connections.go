@@ -13,14 +13,14 @@ import (
 
 // Device representa um dispositivo retornado pelo sistema principal.
 type Device struct {
-	ID         int     `json:"id"`
-	MacAddress *string `json:"macAddress,omitempty"`
-	IP         *string `json:"ip,omitempty"`
-	DeviceKey  *string `json:"deviceKey,omitempty"`
-	DeviceID   string  `json:"deviceId"`
-	IsActive   *bool   `json:"isActive,omitempty"`
-	CreatedAt  *string `json:"createdAt,omitempty"`
-	UpdatedAt  *string `json:"updatedAt,omitempty"`
+	ID           string   `json:"id"`
+	Ip           *string  `json:"ip,omitempty"`
+	DeviceID     string   `json:"deviceId"`
+	IsActive     *bool    `json:"isActive,omitempty"`
+	CreatedAt    *string  `json:"createdAt,omitempty"`
+	UpdatedAt    *string  `json:"updatedAt,omitempty"`
+	Flow         *float32 `json:"flow,omitempty"`
+	Confiability *float32 `json:"confiability,omitempty"`
 }
 type DevicesResponse struct {
 	Success bool     `json:"success"`
@@ -28,7 +28,6 @@ type DevicesResponse struct {
 	Message string   `json:"message"`
 }
 
-// FetchDevices busca devices pela URL
 func FetchDevices(url string) ([]Device, error) {
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Get(url)
@@ -50,7 +49,6 @@ func FetchDevices(url string) ([]Device, error) {
 	return res.Data, nil
 }
 
-// ConnectRabbit estabelece a conexão com o RabbitMQ e retorna o canal ativo.
 func ConnectRabbit(rabbitURL string) (*amqp.Connection, *amqp.Channel, error) {
 	conn, err := amqp.Dial(rabbitURL)
 	if err != nil {
@@ -66,7 +64,6 @@ func ConnectRabbit(rabbitURL string) (*amqp.Connection, *amqp.Channel, error) {
 	return conn, ch, nil
 }
 
-// PublishWithRetry publica uma mensagem no RabbitMQ com tentativas de retry.
 func PublishWithRetry(ch *amqp.Channel, queue string, body []byte, retries int) error {
 	for i := 0; i <= retries; i++ {
 		err := ch.Publish(

@@ -11,15 +11,6 @@ import requests
 
 app = FastAPI(title="YOLO Service")
 
-# --- CORS ---
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],       
-    allow_credentials=True,
-    allow_methods=["*"],          
-    allow_headers=["*"],          
-)
-# -------------
 
 model = YOLO("model/best.pt")
 

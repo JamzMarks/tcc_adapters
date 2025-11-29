@@ -70,7 +70,7 @@ loop:
 							Confiability float64 `json:"confiability"`
 							Flow         float64 `json:"flow"`
 						}{
-							Confiability: float64(newVal),
+							Confiability: 0.8,
 							Flow:         float64(newVal),
 						},
 						TS: time.Now().UTC().Format(time.RFC3339),

@@ -15,6 +15,8 @@ import (
 
 func main() {
 	cfg := adapter.LoadConfig()
+
+	// ---- RabbitMQ ----
 	conn, ch, err := adapter.ConnectRabbit(cfg.RabbitURL)
 	if err != nil {
 		log.Fatalf("failed to connect RabbitMQ: %v", err)
@@ -27,6 +29,7 @@ func main() {
 		log.Fatalf("queue declare: %v", err)
 	}
 
+	// ---- Carrega dispositivos ----
 	devices, err := adapter.FetchDevices(cfg.DeviceAPI)
 	if err != nil {
 		log.Fatalf("fetch devices: %v", err)
@@ -35,17 +38,22 @@ func main() {
 		log.Println("warning: no devices returned")
 	}
 
+	// Mapa dos últimos valores
 	last := make(map[string]*float64)
 	for _, d := range devices {
 		last[d.DeviceID] = nil
 	}
 
+	// ---- Gerador randômico único (CORRETO) ----
+	rg := adapter.NewRandomGenerator(cfg.Seed)
+
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
 	ticker := time.NewTicker(time.Duration(cfg.PollMs) * time.Millisecond)
-	log.Printf("Publicando para %d dispositivos", len(last))
 	defer ticker.Stop()
+
+	log.Printf("Publicando para %d dispositivos", len(last))
 
 	var wg sync.WaitGroup
 
@@ -53,35 +61,45 @@ loop:
 	for {
 		select {
 		case <-ctx.Done():
-			log.Println("stopping adapter...")
+			log.Println("stopping adapter…")
 			break loop
+
 		case <-ticker.C:
-			for id := range last {
+			for deviceID := range last {
 				wg.Add(1)
-				go func(deviceID string) {
+				go func(id string) {
 					defer wg.Done()
-					rg := adapter.NewRandomGenerator(cfg.Seed)
-					newVal := rg.ComputeNewValue(last[deviceID], cfg.DeltaRange)
-					last[deviceID] = &newVal
+
+					// Gera valor novo usando o gerador REAL
+					newVal := rg.ComputeNewValue(last[id], cfg.DeltaRange)
+					last[id] = &newVal
+
+					// Mensagem
 					msg := adapter.EdgeMessage{
-						DeviceId:   deviceID,
+						DeviceId:   id,
 						DeviceType: "mock",
 						Data: struct {
 							Confiability float64 `json:"confiability"`
 							Flow         float64 `json:"flow"`
 						}{
-							Confiability: float64(newVal),
-							Flow:         float64(newVal),
+							Confiability: 0.9,
+							Flow:         newVal,
 						},
+
 						TS: time.Now().UTC().Format(time.RFC3339),
 					}
+
 					log.Printf("Publicando mensagem: %+v", msg)
+
 					b, _ := json.Marshal(msg)
+
 					if err := adapter.PublishWithRetry(ch, cfg.QueueName, b, 3); err != nil {
-						log.Printf("publish failed for %s: %v", deviceID, err)
+						log.Printf("publish failed for %s: %v", id, err)
 					}
-				}(id)
+
+				}(deviceID)
 			}
+
 			wg.Wait()
 		}
 	}
